@@ -174,6 +174,7 @@ var Stars = (function () {
 }());
 var Starship = (function () {
     function Starship(game) {
+        var _this = this;
         this.color = color(255, 255, 255);
         this.speed = 5;
         this.spriteLeft = undefined;
@@ -182,6 +183,50 @@ var Starship = (function () {
         this.h = 10;
         this.isLeft = true;
         this.game = undefined;
+        this.oldX = 0;
+        this.oldY = 0;
+        this.touchStarted = function () {
+            _this.oldX = Number.NaN;
+            _this.oldY = Number.NaN;
+        };
+        this.touchEnded = function () {
+        };
+        this.touchMoved = function (e) {
+            if (Number.isNaN(_this.oldX)) {
+                _this.oldX = mouseX;
+                _this.oldY = mouseY;
+                return;
+            }
+            var dx = mouseX - _this.oldX;
+            var dy = mouseY - _this.oldY;
+            if (dx < 0) {
+                _this.translate(_this.spriteLeft, dx, 0);
+                _this.translate(_this.spriteRight, dx, 0);
+                _this.oldX = mouseX;
+                _this.oldY = mouseY;
+                _this.spriteLeft.visible = true;
+                _this.spriteRight.visible = false;
+                _this.isLeft = true;
+                _this.draw();
+            }
+            else if (dx > 0) {
+                _this.translate(_this.spriteLeft, dx, 0);
+                _this.translate(_this.spriteRight, dx, 0);
+                _this.oldX = mouseX;
+                _this.oldY = mouseY;
+                _this.spriteLeft.visible = false;
+                _this.spriteRight.visible = true;
+                _this.isLeft = false;
+                _this.draw();
+            }
+            if (dy !== 0) {
+                _this.translate(_this.spriteLeft, 0, dy);
+                _this.translate(_this.spriteRight, 0, dy);
+                _this.oldX = mouseX;
+                _this.oldY = mouseY;
+                _this.draw();
+            }
+        };
         this.game = game;
         var imageLeft = loadImage('images/spaceship.png');
         this.spriteLeft = createSprite(300, 150);
@@ -197,6 +242,23 @@ var Starship = (function () {
         this.spriteRight.y = height / 2;
         this.spriteRight.collider = 'none';
         this.spriteRight.visible = false;
+        canvas.touchStarted(this.touchStarted);
+        canvas.touchEnded(this.touchEnded);
+        canvas.touchMoved(this.touchMoved);
+        var button = createButton('Fire');
+        button.position(width + 45, 40);
+        button.mousePressed(function () {
+            bankOfSounds.laser.play();
+            stroke(255, 255, 255);
+            if (_this.isLeft) {
+                line(_this.spriteLeft.x, _this.spriteLeft.y + 5, 0, _this.spriteLeft.y + 5);
+            }
+            else {
+                line(_this.spriteRight.x, _this.spriteRight.y + 5, width, _this.spriteLeft.y + 5);
+            }
+            _this.testHitLaserAlien(_this.spriteRight.x, _this.spriteRight.y + 5);
+            _this.draw();
+        });
     }
     Starship.prototype.draw = function () {
         this.keyPressed();
@@ -324,8 +386,9 @@ var Starship = (function () {
 }());
 var game = undefined;
 var bankOfSounds = undefined;
+var canvas = undefined;
 function setup() {
-    createCanvas(1000, 300);
+    canvas = createCanvas(1000, 300);
     game = new Game(1000, 300);
     bankOfSounds = new BankOfSounds();
 }

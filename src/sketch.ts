@@ -1,8 +1,9 @@
 let game: Game = undefined
 let bankOfSounds: BankOfSounds = undefined
+let canvas: p5.Renderer = undefined
 
 function setup() {
-    createCanvas(1000, 300)
+    canvas = createCanvas(1000, 300)
     game = new Game(1000, 300)
     bankOfSounds = new BankOfSounds()
 }

@@ -7,6 +7,8 @@ class Starship {
     h = 10
     isLeft = true
     game: Game = undefined
+    oldX = 0
+    oldY = 0
 
     constructor(game: Game) {
         this.game = game
@@ -26,16 +28,35 @@ class Starship {
         this.spriteRight.y = height / 2
         this.spriteRight.collider = 'none'
         this.spriteRight.visible = false
+
+        canvas.touchStarted(this.touchStarted);
+        canvas.touchEnded(this.touchEnded);
+        canvas.touchMoved(this.touchMoved);
+
+        let button = createButton('Fire')
+        button.position(width + 45, 40)
+        button.mousePressed(() => {
+            bankOfSounds.laser.play()
+            stroke(255, 255, 255)
+            if (this.isLeft) {
+                line(this.spriteLeft.x, this.spriteLeft.y + 5, 0, this.spriteLeft.y + 5)
+            }
+            else {
+                line(this.spriteRight.x, this.spriteRight.y + 5, width, this.spriteLeft.y + 5)
+            }
+            this.testHitLaserAlien(this.spriteRight.x, this.spriteRight.y + 5)
+            this.draw()
+        })
     }
 
     draw() {
         this.keyPressed()
 
         for (let i = 0; i < this.game.aliens.length; i++) {
-            let  alien = this.game.aliens.getAlien(i)
-            if  (alien.sprite.removed === false) {
-                 if (this.testCollapse(this.getRect(), alien.getRect())) {
-                     this.game.gameOver()
+            let alien = this.game.aliens.getAlien(i)
+            if (alien.sprite.removed === false) {
+                if (this.testCollapse(this.getRect(), alien.getRect())) {
+                    this.game.gameOver()
                 }
             }
         }
@@ -74,8 +95,56 @@ class Starship {
         if (sprite.y < 0) {
             sprite.y = 0
         }
-        if (sprite.y > height ) {
+        if (sprite.y > height) {
             sprite.y = height
+        }
+    }
+
+    touchStarted = () => {
+        this.oldX = Number.NaN
+        this.oldY = Number.NaN
+    }
+
+    touchEnded = () => {
+        // console.log('touch ended')
+    }
+
+    touchMoved = (e: TouchEvent) => {
+        if (Number.isNaN(this.oldX)) {
+            this.oldX = mouseX
+            this.oldY = mouseY
+            return
+        }
+
+        const dx = mouseX - this.oldX
+        const dy = mouseY - this.oldY
+        if (dx < 0) {
+            this.translate(this.spriteLeft, dx, 0)
+            this.translate(this.spriteRight, dx, 0)
+            this.oldX = mouseX
+            this.oldY = mouseY
+            this.spriteLeft.visible = true
+            this.spriteRight.visible = false
+            this.isLeft = true
+            this.draw()
+        }
+        else if (dx > 0) {
+            this.translate(this.spriteLeft, dx, 0)
+            this.translate(this.spriteRight, dx, 0)
+            this.oldX = mouseX
+            this.oldY = mouseY
+            this.spriteLeft.visible = false
+            this.spriteRight.visible = true
+            this.isLeft = false
+            this.draw()
+        }
+
+        if (dy !== 0) {
+            this.translate(this.spriteLeft, 0, dy)
+            this.translate(this.spriteRight, 0, dy)
+            this.oldX = mouseX
+            this.oldY = mouseY
+            this.draw()
         }
     }
 
@@ -123,7 +192,7 @@ class Starship {
 
             if (keyCode === 65) { // letter A
                 this.spriteLeft.x = random(0, width)
-                this.spriteLeft.y = random(0,  height)
+                this.spriteLeft.y = random(0, height)
                 this.spriteLeft.x = this.spriteLeft.x
                 this.spriteLeft.y = this.spriteLeft.y
                 bankOfSounds.hyperSpace.play()
@@ -137,7 +206,7 @@ class Starship {
 
             if (beamY <= alien.y + alien.h && beamY >= alien.y) {
                 // on tape juste en y
-                if ( (this.isLeft && alien.x<= beamX) || (!this.isLeft && alien.x>= beamX) ) {
+                if ((this.isLeft && alien.x <= beamX) || (!this.isLeft && alien.x >= beamX)) {
                     // le laser est dans la bonne direction
                     alien.sprite.visible = false
                     alien.sprite.removed = true
@@ -145,7 +214,7 @@ class Starship {
                     this.hitExplode()
                     return
                 }
-                
+
             }
         }
     }
