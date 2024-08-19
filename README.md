@@ -6,6 +6,12 @@ Written using [p5.js](https://p5js.org/)
     <a href="https://xaliphostes.github.io/defend-or-die-pioupiou/"><b>Launch the game...</b></a>
 </p>
 
+<p align="center">
+    <a href="https://websim.ai/@Xaliphostes/defend-or-die-keyboard-controls"><b>Launch the NEW game using the WebSim AI...</b></a>
+</p>
+
+
+
 # Notions for this course
 - Variables in TypeScript
 - Classes with constructor, private, public and protected methods, encapsulation...
